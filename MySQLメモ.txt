@@ -2,3 +2,55 @@
 # データ操作言語(DML)
 # データ定義言語(DDL)
 # データ制御言語(DCL)
+
+# データ型
+# 数値
+# 基本はintでOK
+tinyint, smallint, mediumint, int, bigint
+
+# 浮動少数型, 固定少数型
+# 浮動少数型は基本はdoubleでOK, decimal(numeric)は指定した桁数の精度を保証
+float, double
+decimal, numeric
+
+# 文字列(シングルクォートで囲む)
+# 固定長文字列の空きは半角スペースで, 固定長バイナリは0で埋められる
+char, varchar, text, binary, varbinary, blob, enum, set
+
+# 日付時刻(シングルクォートで囲む)
+# 日付はYYYYMMDD形式で指定, デリミタ(/, -, ^, @など)があれば月や日の頭の0を省略可
+# 時刻は'D HH:MM:SS'や'HH:MM:SS', 'HH:MM:SS.xxxxxx'などで指定, デリミタは(:, +, *, ^)
+# 日付時刻でtimestampは時刻をグリニッジ標準時に自動変換するので、時差を考慮する場合は使用
+# 日付と時刻の区切りは半角スペースか'T'
+date, time, datetime, timestamp, year
+
+# その他
+geometry, point, linestring, polygon
+
+# データの抽出
+select カラム名 from テーブル名;
+
+# データの絞り込み
+select カラム名 from テーブル名 where 条件式;
+
+# データの挿入
+# カラム名と挿入値の並びは一致させること
+insert into テーブル名 (カラム名①, カラム名②, ...)
+values (挿入値①, 挿入値②, ...);
+
+# データの更新
+# insert文では二重登録などエラーの恐れがある
+# where句でどのレコードを更新するか指定する
+update テーブル名 set カラム名 = 値
+where 主キー = 値;
+
+# update文で計算式を用いる
+update テーブル名 set カラム名 = 計算式;
+
+# データの削除
+# 条件式を指定しないと全レコードの削除となる。
+delete from テーブル名 where = 条件式;
+
+# NULL値検索
+# where hiredate = null でないことに注意
+ex. select * from emp where hiredate is null
