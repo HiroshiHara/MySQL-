@@ -54,3 +54,66 @@ delete from テーブル名 where = 条件式;
 # NULL値検索
 # where hiredate = null でないことに注意
 ex. select * from emp where hiredate is null
+
+# 比較演算子
+# not equal は <> もしくは != で表す
+# between X and Y ... X以上Y以下の範囲
+# not between A and B ... A以上B以下の範囲でない
+# in (A, B, C, ...)列挙した値のいずれか
+# not in 列挙した値のどれでもない
+# in(not in)で検索できるのは完全一致のみ
+# like 文字列がパターンに合致する
+# not like 文字列化がパターンに合致しない
+# % ... 0文字以上の任意の文字列 _ ... 任意の1文字
+# <=> null安全等価 =と機能は同じだが、両方のオペランドがnullであれば1, 片方がnullなら0が返される。
+# is null nullである
+# is not null nullでない
+
+# 論理演算子
+# XOR, && || ! はMySQLの方言なので使用しないほうが無難
+# 優先順位は not > and > or
+# where X in (not 'A', 'B', 'C')のように、in句のカッコの中でnotを使用できる
+
+# 前提：関数はselect句だけでなく、where句にも使用できる
+
+# 数値関数
+# floor()... 引数以下で最大の整数値を返す(小数点切り捨て)
+# ceiling(), ceil()... 引数以下で最小の整数値を返す(小数点切り上げ)
+# round()... 引数を四捨五入する, 第二引数で小数点第何位まで丸めるか指定可
+# trauncate()... 指定された小数点以下の桁数に切り捨て
+# exp()... 引数を累乗する
+# pow()... 引数を指定した指数で累乗する
+# sqrt()... 引数の平方根を返す
+# rand()... ランダムな浮動小数点値を返す
+select round(rand * 10) で0~10のランダムな整数を取得できる
+乱数取得のテンプレートは floor(rand() * (最大値 - 最小値) + 最小値)
+# abs()... 引数の絶対値を返す
+
+# 文字列関数
+# concat()... 文字列を連結する
+ex. select concat(state, address) from jusho;
+# concat_ws()... 区切り文字を指定して文字列を連結する
+# replace()... 文字列を置換する
+ex. select replace(company, '社', '株式会社') from uriage;
+# insert()... 文字列を挿入する
+# char_length()... 文字列の長さを返す
+# length()... 文字列のバイト数を返す
+# left()... 左端から引数分の文字列を返す
+# right()... 右端から引数分の文字列を返す
+# substring()... 指定した箇所から引数分の文字列を返す
+# (l, r)trim()... 両端の空白を削除する
+# (l, r)pad()... 指定した桁数で左右から文字を埋める
+# space()... 指定した数の空白で構成された空文字を返す
+# lower(), upper()... 大文字小文字変換
+# format()... 三桁ごとにカンマ区切り, 小数点以下表示
+ex. select format(charge, 2) from uriage;
+# strcmp()... 文字列比較
+# 
+
+# 日付および時間関数
+# now()... 現在時刻取得
+# sysdate()... クエリ実行時刻取得
+# year(), month(), week(), day(), hour()... 年月日時分秒を取得
+# dayname()... 曜日を英語で取得
+# date_format()
+ex. date_format(salesdate, '%Y年%m月%d日')
