@@ -117,3 +117,15 @@ ex. select format(charge, 2) from uriage;
 # dayname()... 曜日を英語で取得
 # date_format()
 ex. date_format(salesdate, '%Y年%m月%d日')
+
+# 絞り込み
+# distinct... 重複の除去(distinctはselect文の直後でしか機能しない)
+ex. select distinct company from uriage where charge >= 100000;
+
+# order by カラム名... ascで昇順, descで降順
+# from テーブル名の直後かwhere句の後に記述
+ex. select distinct company from uriage where charge >= 100000 order by charge desc;
+
+# limit 件数 (limit 指定箇所, 件数)
+# select構文でしか使えず、order by の直後に記述する。order by が無くとも書けるが無意味
+ex. select company, charge from uriage where charge >= 100000 order by charge asc limit 5, 4;(5番目に少ないものから4件)
