@@ -437,7 +437,8 @@ and salesdate <= '2017-09-30');
 | デフォルト値 | - | - | 0 |
 | オートインクリメント | ○ | ☓ | ☓ |
 | 外部キー | - | - | - |
-| 用途 | 商品を区別する連番を設定する | 商品名を格納する | 在庫数を格納する |  
+| 用途 | 商品を区別する連番を設定する | 商品名を格納する | 在庫数を格納する |    
+
 CREATE TABLE `mydbexample`.`zaiko`  
 ( `zaikoId` INT NOT NULL AUTO_INCREMENT COMMENT '商品を区別する連番' ,  
 `product` INT(50) NOT NULL COMMENT '商品名' ,  
