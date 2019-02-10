@@ -535,3 +535,99 @@ select文の実行結果をテーブルとして扱う
 ##### ビューを経由した更新
 ビューに対する変更(更新、削除、追加)はビューのもとになっているテーブルにも反映される  
 ただし変更の影響が複数のテーブルに及ぶ場合はエラーとなる
+
+## トランザクション
+* ##### トランザクションの特性
+  * 原始性(Atomicity)  
+  * 一貫性(Consistency)  
+  * 分離性(Isolarion)  
+  * 永続性(Durability)  
+
+
+オートコミットを無効にするには  
+set autocommit = 0;と記述  
+commit;と記述されるまでコミットされなくなる  
+
+複数のクエリをトランザクションとして処理する構文  
+start transaction;  
+SQL;  
+SQL;  
+SQL;  
+... ;  
+commit;  
+
+ex.  
+start transaction  
+INSERT INTO shukko (shukkoId, zaikoId, outStock, outDate)  
+VALUES (20179001, 8001, 30, '2017/09/25');  
+UPDATE zaiko SET stock = stock - 30 WHERE zaikoId = 8001;  
+commit;  
+(在庫を30減らして出庫データに30登録する)
+
+
+意図的にロールバックを発生させる構文
+start transaction;  
+SQL;  
+SQL;  
+... ;  
+rollback;  
+
+## ロック
+* 共有ロック
+  * 他のユーザは読み取りはできるが書き込みはできない  
+  * 共有ロック中のものに他のユーザが共有ロックをかけることはできる  
+* 排他ロック  
+  * 他のユーザは読み取りも書き込みもできない
+  * 排他ロック中のものに他のユーザは共有・排他ロックともにすることはできない  
+
+SQLクエリ一文が実行されているときは自動的に排他制御がかかるが、  
+トランザクションのような複数のクエリを一括で実行する際は  
+明示的にロックをかける  
+
+#### テーブルロック
+lock tables... テーブル全体にロックをかける  
+read... 共有ロックをかける  
+write... 排他ロックをかける  
+unlock tables... ロックを外す  
+
+ex.  
+start transaction;  
+lock tables テーブル名 read(write);  
+SQL文;  
+unlock tables テーブル名;  
+commit(rollback);  
+
+#### レコードロック
+更新処理のSQL文は自動的に排他ロックがかかる  
+明示的に記述する場合は以下の構文を用いる  
+lock in share mode... 共有ロックをかける  
+for update... 排他ロックをかける  
+
+ex.  
+start transaction;  
+select * from テーブル名  
+SQL lock in share mode(for update);  
+SQL文;  
+commit(rollback);  
+
+ex.  
+start transaction;
+select * from zaseki  
+where idza = 'c27' for update;  
+update zaseki  
+set shimei = 'tanaka', yoyakubi = now()  
+where idza = 'c27';  
+commit;  
+
+* ##### トランザクション分離
+デフォルトはrepeatable readが設定されている  
+  * read uncommitted  
+    * コミットされていないデータを読み込む可能性がある(dirty read)が、高速
+  * read commited  
+    * コミットされたデータしか読み込まない  
+    * 他のユーザの書き込み結果はすぐに反映される(fazzy read)  
+  * repeatable read  
+    * スナップショットを作成することで  
+    他のユーザの操作がトランザクションに及ばない
+  * serializable  
+    * 完全分離するが、ロックの競合が発生しやすくパフォーマンスが落ちる可能性がある  
