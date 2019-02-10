@@ -128,7 +128,7 @@ delete from テーブル名 where = 条件式;
   <dt>%</dt>
   <dd>0文字以上の任意の文字列</dd>  
 
-  <dt>_</dt>
+  <dt>\_</dt>
   <dd>任意の一文字</dd>  
 
   <dt><=></dt>
@@ -406,7 +406,7 @@ in (select company from jusho where state = '東京都');
 #### exists(not exists)
 サブクエリの戻り値があるかどうかを調べる演算子, where句で使用する。  
 exists演算子で利用するサブクエリは、レコードが存在するかどうかを調べることが目的のため、抽出するカラムは何でもいい。  
-*慣例的に * で指定する*  
+*慣例的にアスタリスクで指定する*  
 
 ex.  
 select * from jusho  
@@ -415,3 +415,123 @@ where exists
 inner join jusho on uriage.company = jusho.company  
 where salesdate >= '2017-09-01'  
 and salesdate <= '2017-09-30');  
+
+***
+
+## データベースの作成
+使用する文字コード(照合順序)はUTF-8(utf8_general_ci)が一般的  
+
+#### スキーマ
+テーブルのカラムや制約の構造定義のこと  
+オートインクリメントは1から始まる
+
+##### ex. zaikoテーブル
+
+|  | zaikoId | product | stock |
+| :---- | :---- | :------ | :---- |
+| 型 | int | varchar | int |
+| 長さ | - | 50 | - |
+| 主キー | ○ | ☓ | ☓ |
+| 制約 | - | not null | not null |
+| インデックス | - | - | - |
+| デフォルト値 | - | - | 0 |
+| オートインクリメント | ○ | ☓ | ☓ |
+| 外部キー | - | - | - |
+| 用途 | 商品を区別する連番を設定する | 商品名を格納する | 在庫数を格納する |  
+CREATE TABLE `mydbexample`.`zaiko`  
+( `zaikoId` INT NOT NULL AUTO_INCREMENT COMMENT '商品を区別する連番' ,  
+`product` INT(50) NOT NULL COMMENT '商品名' ,  
+`stock` INT NOT NULL DEFAULT '0' COMMENT '在庫数' ,  
+PRIMARY KEY (`zaikoId`)) ENGINE = InnoDB;  
+
+
+##### ex. shukkoテーブル  
+
+* ###### 外部キー制約
+  * 子テーブルから参照されているレコードは親から削除できない
+  * 子テーブルには親にある値しか設定できない
+* ###### 参照アクション
+  * restrict または no action  
+  親テーブルに対する削除と更新を拒否する(デフォルト)
+  * cascade  
+  親が削除または更新されると子も連動して変更される
+  * set null  
+  親を削除した場合それを参照している子にはnullが設定される
+
+|  | shukkoId | zaikoId | outStock | outDate |
+| :---- | :---- | :---- | :---- | :---- |
+| 型 | int | int | int | datetime |
+| 長さ | - | - | - | - |
+| 主キー | ○ | ☓ | ☓ | ☓ |
+| 制約 | なし | なし | not null | not null |
+| インデックス | - | index | - | - |
+| デフォルト値 | - | - | 0 | - |
+| オートインクリメント | ○ | ☓ | ☓ | ☓ |
+| 外部キー | - | zaiko.zaikoId | - | - |
+| 用途 | 出庫情報を区別する連番を設定する | 該当の在庫ID | 出庫数を格納する | 出庫日時を格納する |  
+
+CREATE TABLE `shukko` (  
+ `shukkoId` int(11) NOT NULL AUTO_INCREMENT COMMENT '出庫情報を区別する連番',  
+ `zaikoId` int(11) NOT NULL COMMENT '該当する在庫ID',  
+ `outStock` int(11) NOT NULL DEFAULT '0' COMMENT '出庫数',  
+ `outDate` datetime NOT NULL COMMENT '出庫日時',  
+ PRIMARY KEY (`shukkoId`),  
+ KEY `zaikoId` (`zaikoId`),  
+ CONSTRAINT `shukko_ibfk_1` FOREIGN KEY (`zaikoId`) REFERENCES `zaiko` (`zaikoId`)  
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
+
+
+ALTER TABLE `shukko` ADD FOREIGN KEY (`zaikoId`)  
+REFERENCES `zaiko`(`zaikoId`)  
+ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+#### テーブル、データベースの削除
+##### drop table テーブル名
+##### drop datebase データベース名
+
+***
+
+## インデックス
+SQLにおける検索では先頭のレコードから順に検索していくため時間がかかる可能性がある  
+したがって、本の索引番号の様に予め検索されそうなカラムにはインデックス用の数値を紐付ける  
+ただしデータ更新の際にはインデックスも更新する必要があるため  
+更新速度は落ちる傾向がある  
+
+* ##### インデックスの種類
+  * index  
+  通常のインデックス  
+  * unique  
+  重複を許さないインデックス  
+  * fulltext  
+  全文検索に設定するインデックス  
+  * spatial  
+
+  基本構文
+    alter table テーブル名 add index(カラム名);  
+  インデックスの削除は  
+    alter table テーブル名 drop index(インデックス名);
+
+  SQLの実行計画を調べる  
+    explain SQLクエリ;
+
+***
+
+## ビュー
+select文の実行結果をテーブルとして扱う  
+ビューを参照するたびにクエリが実行されるので、常に最新の状態を参照できる
+
+基本構文   
+  create view ビュー名 as select文  
+  ex.  
+  create view uriageWithTel as  
+  select idur, uriage.company, charge, salesdate, tel  
+  from uriage inner join jusho on  
+  uriage.company = jusho.company;  
+
+  ビューの削除  
+    drop view ビュー名;
+
+
+##### ビューを経由した更新
+ビューに対する変更(更新、削除、追加)はビューのもとになっているテーブルにも反映される  
+ただし変更の影響が複数のテーブルに及ぶ場合はエラーとなる
