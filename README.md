@@ -632,3 +632,113 @@ commit;
     他のユーザの操作がトランザクションに及ばない
   * serializable  
     * 完全分離するが、ロックの競合が発生しやすくパフォーマンスが落ちる可能性がある  
+
+***
+
+## ストアドルーチン
+一連のSQLクエリをひとまとめにしてDBに登録しておく機能  
+
+#### ストアドプロシージャ
+複数のSQL文をパッケージングして実行する仕組み  
+作成したパッケージはcall構文で呼び出す  
+トランザクションとの併用も可能  
+
+基本構文...  
+create procedure プロシージャ名(引数... )  
+begin  
+登録したいSQL文;  
+登録したいSQL文;  
+end;  
+
+なお、ストアドプロシージャにおけるSQL文を区切るデリミタは;(セミコロン)であるが、手続きをないと文末だと判断されてしまうので以下で設定を変更する  
+
+delimiter 代替のデリミタ
+適用したいSQL文;  
+end 代替のデリミタ  
+
+代替デリミタの適用範囲は指定したデリミタが使用されるまでである  
+つまりストアドプロシージャのend句に代替デリミタをつければ;を使用できる  
+
+ex.  
+delimiter //  
+create procedure() procedureSample()  
+begin  
+insert into shohin (idsh, product, price, category)  
+values ('m132004', '万年筆D', 3000, '万年筆');  
+insert into uriage (iddh, company, charge, state, area)  
+values (2017120001, 'シリウス社', 6000, '東京都', '世田谷区');  
+insert into uriage (iddh, company, charge, state, area)  
+values (2017120002, 'ベガ社', 12000, '東京都', '世田谷区');
+end //
+
+ストアドプロシージャの実行
+基本構文...  
+call プロシージャ名(引数... );  
+
+ストアドプロシージャの削除  
+drop procedure プロシージャ名;  
+
+ストアドプロシージャにおける引数の利用  
+create procedure プロシージャ名(引数名 データ型, ...)  
+
+ex.  
+delimiter //  
+create procedure selectAllUriage(companyName varchar(50))  
+begin  
+select * from uriage where company = companyName;  
+end //  
+
+call selectAllUriage('シリウス社');  
+
+
+#### ストアドファンクション
+ストアドプロシージャとは異なり、戻り値がある  
+call句を使用する必要はなく、select文やwhere句など関数を使用できる箇所ならどこでも使用可能  
+
+
+基本構文  
+create function ファンクション名() returns 戻り値の型  
+begin  
+登録したいSQL文  
+return 戻り値とする値  
+end;  
+
+ex.  
+delimiter //  
+create function functionSample(animalName varcher(20))  
+returns varchar(50)  
+begin  
+insert into animals(name) values (animalName);  
+return '登録に成功しました';  
+end //  
+
+戻り値はローカル変数に代入して返すのが基本  
+変数定義の基本構文  
+declare 変数名 データ型;  
+
+select intoで検索結果を変数に代入可能  
+
+ex.  
+delimiter //  
+create fuction functionSampleWithVariable(companyName varchar(50))  
+returns decimal  
+begin  
+declare retval decimal;  
+select sum(charge) into retval from uriage where company = companyName;  
+return retval;  
+end //  
+
+ストアドファンクションにSQLは必須ではなく、concat()などの結果を戻り値として取得することもできる  
+ex.   
+delimiter //  
+create function concatMr(name varchar(20))  
+returns varchar(20)  
+begin  
+return concat(name, '様');  
+end //  
+
+
+ストアドファンクションの削除  
+drop function ファンクション名;  
+
+***
