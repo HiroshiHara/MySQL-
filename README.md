@@ -742,3 +742,32 @@ end //
 drop function ファンクション名;  
 
 ***
+
+## トリガー
+ストアドプロシージャやストアドファンクション実行を検知して
+自動で処理されるもの。
+具体的にはinsert, delete, updateに反応して実行される  
+
+基本構文  
+create trigger トリガー名  
+before(after) 対象の操作 on テーブル名 for each row  
+begin  
+実行したいSQL文  
+end;  
+
+old.カラム名...  
+deleteまたはupdateで使用可能  
+削除または更新後、変更された後のデータを参照する  
+
+new.カラム名...  
+insertまたはupdateで使用可能  
+挿入または更新後、変更された後のデータを参照する  
+
+ex.  
+delimiter //  
+create trigger triggerSample  
+after delete  
+on jusho for each row  
+begin  
+update uriage set charge = 0 where company = old.company  
+end //  
