@@ -128,7 +128,7 @@ delete from テーブル名 where = 条件式;
   <dt>%</dt>
   <dd>0文字以上の任意の文字列</dd>  
 
-  <dt>\_</dt>
+  <dt>_</dt>
   <dd>任意の一文字</dd>  
 
   <dt><=></dt>
